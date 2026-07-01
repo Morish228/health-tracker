@@ -1,0 +1,28 @@
+GET  http://localhost:5000
+### register
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "morish@gmail.com",
+  "password": "morish123",
+  "firstName": "Morish",
+  "lastName": "Narang",
+  "phone": "7986663636"
+}
+### login
+
+POST http://localhost:5000/api/auth/login
+Content-Type:application/json
+
+{
+  "email": "morish@gmail.com",
+  "password": "morish123",
+  "firstName": "Morish",
+  "lastName": "Narang",
+  "phone": "7986663636"
+}
+### getme
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTQyM2M2ZmExY2VhMGZiYTYzNjZlYzQiLCJpYXQiOjE3ODI3MjU5ODUsImV4cCI6MTc4MzMzMDc4NX0.v-xhLIGw_GZY98w4SG5gc9WUo7TRzaBEs1bEb2G3LfQ
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer {{token}}
