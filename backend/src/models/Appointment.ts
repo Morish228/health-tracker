@@ -51,6 +51,9 @@ const appointmentSchema = new Schema<IAppointment>(
     followUpId: {
       type: Schema.Types.ObjectId,
       ref: 'Appointment',
+      // self referencing schema
+      // pointint to the id of next appointment 
+
     },
     prescriptionId: {
       type: Schema.Types.ObjectId,

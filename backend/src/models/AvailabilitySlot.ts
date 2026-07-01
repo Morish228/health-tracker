@@ -44,6 +44,7 @@ const availabilitySlotSchema = new Schema<IAvailabilitySlot>(
 
 // Prevent duplicate slots for the same doctor at the same date and time
 availabilitySlotSchema.index({ doctorId: 1, date: 1, startTime: 1 }, { unique: true });
+//ok so this line is creating a compound index on 3 fields . and storing them in ascending order . and we are using left prefix rule . if quey is of doctorID , or doctoreid + date . or id+ data+start time . them we can do efficient search and their combination is uniq 
 
 export const AvailabilitySlot = mongoose.model<IAvailabilitySlot>(
   'AvailabilitySlot',
