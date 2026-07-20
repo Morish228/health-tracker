@@ -1,0 +1,23 @@
+# Secrets — never commit real env files
+.env
+*.env
+!.env.example
+!frontend/.env
+
+# Dependencies / build output
+node_modules/
+dist/
+venv/
+__pycache__/
+*.pyc
+
+# Local junk
+*.log
+.DS_Store
+temp_uploads/
+.vscode/
+
+# Personal notes (not part of the app)
+notes.txt
+medicationnotes.txt
+appointment-notes.txt

@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IDoctor extends Document {
+  userId?: mongoose.Types.ObjectId; // links to the User login account (absent for legacy seed-only entries)
   name: string;
   specialization: string;
   qualifications?: string;
-  hospitalId: mongoose.Types.ObjectId;
+  hospitalId?: mongoose.Types.ObjectId;
   contact?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -12,6 +13,12 @@ export interface IDoctor extends Document {
 
 const doctorSchema = new Schema<IDoctor>(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      unique: true,
+      sparse: true, // allow many seed-only doctors with no userId while keeping linked ones unique
+    },
     name: {
       type: String,
       required: true,
@@ -29,7 +36,6 @@ const doctorSchema = new Schema<IDoctor>(
     hospitalId: {
       type: Schema.Types.ObjectId,
       ref: 'Hospital',
-      required: true,
     },
     contact: {
       type: String,

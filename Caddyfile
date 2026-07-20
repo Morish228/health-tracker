@@ -1,0 +1,29 @@
+{$PUBLIC_HOST} {
+	encode gzip
+
+	# Backend mounts everything under /api — proxy without rewriting.
+	handle /api/* {
+		reverse_proxy backend:5000
+	}
+
+	# FastAPI services have root-level routes — handle_path strips the prefix.
+	# e.g. /rag/upload -> /upload
+	handle_path /rag/* {
+		reverse_proxy rag:8000
+	}
+
+	handle_path /agent/* {
+		reverse_proxy agent:8001
+	}
+
+	handle_path /scanner/* {
+		reverse_proxy scanner:8002
+	}
+
+	# Everything else: static SPA with client-side routing fallback.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

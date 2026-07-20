@@ -1,0 +1,105 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - frontend_dist:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+      - rag
+      - agent
+      - scanner
+    networks: [appnet]
+
+  # Build-only: bakes the VITE_* URLs into the bundle, copies dist into the
+  # shared volume Caddy serves, then idles.
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: ${PUBLIC_URL}
+        VITE_RAG_URL: ${PUBLIC_URL}/rag
+        VITE_AGENT_URL: ${PUBLIC_URL}/agent
+        VITE_SCANNER_URL: ${PUBLIC_URL}/scanner
+    restart: unless-stopped
+    volumes:
+      - frontend_dist:/srv
+    entrypoint: ["/bin/sh", "-c", "rm -rf /srv/* && cp -r /app/dist/. /srv/ && sleep infinity"]
+    networks: [appnet]
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "5000"
+    expose: ["5000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [appnet]
+
+  rag:
+    build: ./rag
+    restart: unless-stopped
+    env_file: .env
+    expose: ["8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [appnet]
+
+  agent:
+    build: ./agent
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      RAG_SERVICE_URL: http://rag:8000
+      BACKEND_URL: http://backend:5000/api
+    expose: ["8001"]
+    depends_on:
+      - rag
+      - backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8001/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [appnet]
+
+  scanner:
+    build: ./medicine-scanner
+    restart: unless-stopped
+    env_file: .env
+    expose: ["8002"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8002/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [appnet]
+
+volumes:
+  frontend_dist:
+  caddy_data:
+  caddy_config:
+
+networks:
+  appnet:

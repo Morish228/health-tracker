@@ -106,7 +106,7 @@ export const login = async (req: Request, res: Response) => {
     // Generate JWT token
     const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
     const token = jwt.sign(
-      { userId: user._id.toString() },
+      { userId: user._id.toString(), role: user.role },
       jwtSecret,
       { expiresIn: '7d' }
     );
@@ -179,7 +179,16 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 // Update profile
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const { firstName, lastName, dateOfBirth, gender, phone, address } = req.body;
+    const {
+      firstName,
+      lastName,
+      dateOfBirth,
+      gender,
+      phone,
+      address,
+      emergencyContactName,
+      emergencyContactPhone,
+    } = req.body;
 
     const profile = await Profile.findOneAndUpdate(
       { userId: req.userId },
@@ -190,6 +199,8 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         gender,
         phone,
         address,
+        emergencyContactName,
+        emergencyContactPhone,
       },
       { new: true, upsert: true }
     );

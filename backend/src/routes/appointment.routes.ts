@@ -4,6 +4,7 @@ import {
   cancelAppointment,
   completeAppointment,
   getMyAppointments,
+  bookFollowUp,
 } from '../controllers/appointment.controller';
 import { authenticate } from '../middlewares/auth';
 
@@ -17,6 +18,9 @@ router.get('/', getMyAppointments);
 
 // POST /api/appointments - Book a new appointment
 router.post('/', bookAppointment);
+
+// POST /api/appointments/follow-up - Book a follow-up linked to an original appointment (T5)
+router.post('/follow-up', bookFollowUp);
 
 // PATCH /api/appointments/:id/cancel - Cancel a scheduled appointment
 router.patch('/:id/cancel', cancelAppointment);

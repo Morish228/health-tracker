@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AdherenceLog } from '../models/AdherenceLog';
 import { ReminderSchedule } from '../models/ReminderSchedule';
 import { AuthRequest } from '../middlewares/auth';
+import { notifyCaregivers } from '../services/careAlerts';
 
 // Helper to strip time from a Date object (keeps YYYY-MM-DD 00:00:00 UTC)
 const getUTCDateWithoutTime = (dateInput?: string | Date) => {
@@ -40,6 +41,21 @@ export const logDose = async (req: AuthRequest, res: Response) => {
       },
       { new: true, upsert: true }
     );
+
+    // Goal 31 — if a dose is explicitly marked NOT taken, alert caregivers (on write).
+    if (taken === false) {
+      try {
+        await notifyCaregivers(
+          patientId!,
+          'MISSED_DOSE',
+          'Missed medication dose',
+          `Patient marked ${medicationName} (${scheduledTime}) as not taken.`,
+          { prescriptionId, medicationName, scheduledTime }
+        );
+      } catch (notifyErr) {
+        console.error('Missed-dose notification failed:', notifyErr);
+      }
+    }
 
     res.status(200).json({
       success: true,
